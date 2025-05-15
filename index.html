@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador de Examen</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1 class="fade-in">Simulador de Examen</h1>
+    <form id="quizForm" class="fade-in"></form>
+    <button type="button" onclick="submitQuiz()" class="fade-in">Enviar Respuestas</button>
+    <div class="result fade-in" id="result"></div>
+    <div class="incorrect-list fade-in" id="incorrectList"></div>
+  </div>
+
+  <script>
+    const bancoPreguntas = {
+      "Economía": [
+        {
+          texto: "¿Qué es el PIB?",
+          opciones: ["Producto Interno Bruto", "Precio Internacional Base", "Plan de Inversión Bancaria"],
+          correcta: 0
+        },
+        {
+          texto: "¿Qué representa la inflación?",
+          opciones: ["Aumento generalizado de precios", "Caída del empleo", "Disminución del PIB"],
+          correcta: 0
+        },
+        {
+          texto: "¿Qué mide el índice de Gini?",
+          opciones: ["Desigualdad económica", "Crecimiento económico", "Pobreza absoluta"],
+          correcta: 0
+        }
+      ],
+      "Finanzas": [
+        {
+          texto: "¿Qué representa el ROI?",
+          opciones: ["Retorno sobre la inversión", "Reducción operativa inmediata", "Rendimiento óptimo interbancario"],
+          correcta: 0
+        },
+        {
+          texto: "¿Qué es un activo financiero?",
+          opciones: ["Instrumento con valor monetario", "Propiedad física", "Maquinaria"],
+          correcta: 0
+        },
+        {
+          texto: "¿Qué es la liquidez?",
+          opciones: ["Facilidad de convertir activos en dinero", "Nivel de endeudamiento", "Cantidad de efectivo"],
+          correcta: 0
+        }
+      ]
+    };
+
+    const form = document.getElementById("quizForm");
+    let preguntasFinales = [];
+
+    Object.entries(bancoPreguntas).forEach(([curso, preguntas]) => {
+      const seleccionadas = preguntas.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+      const titulo = document.createElement("div");
+      titulo.className = "course-title fade-in";
+      titulo.innerText = curso;
+      form.appendChild(titulo);
+
+      seleccionadas.forEach((pregunta, index) => {
+        const globalIndex = preguntasFinales.length;
+        preguntasFinales.push({ curso, ...pregunta });
+
+        const div = document.createElement("div");
+        div.className = "question fade-in";
+        div.innerHTML = `<strong>${globalIndex + 1}.</strong> ${pregunta.texto}<br>`;
+        pregunta.opciones.forEach((opcion, i) => {
+          div.innerHTML += `
+            <label>
+              <input type="radio" name="pregunta${globalIndex}" value="${i}">
+              ${opcion}
+            </label><br>`;
+        });
+        form.appendChild(div);
+      });
+    });
+
+    function submitQuiz() {
+      let correctas = 0;
+      let incorrectas = [];
+
+      preguntasFinales.forEach((pregunta, index) => {
+        const seleccionada = document.querySelector(`input[name="pregunta${index}"]:checked`);
+        if (seleccionada && parseInt(seleccionada.value) === pregunta.correcta) {
+          correctas++;
+        } else {
+          incorrectas.push({
+            numero: index + 1,
+            curso: pregunta.curso,
+            texto: pregunta.texto,
+            correcta: pregunta.opciones[pregunta.correcta]
+          });
+        }
+      });
+
+      document.getElementById("result").innerText = `✅ Tu puntaje: ${correctas}/${preguntasFinales.length}`;
+
+      let textoErrores = "";
+      if (incorrectas.length > 0) {
+        textoErrores = "<h3>❌ Preguntas incorrectas:</h3><ul>";
+        incorrectas.forEach(p => {
+          textoErrores += `<li><strong>${p.numero}. (${p.curso})</strong> ${p.texto}<br>Respuesta correcta: <em>${p.correcta}</em></li>`;
+        });
+        textoErrores += "</ul>";
+      } else {
+        textoErrores = "<p class='correcto'>¡Todas las respuestas son correctas! 🎉</p>";
+      }
+
+      document.getElementById("incorrectList").innerHTML = textoErrores;
+    }
+
+    // Animaciones al hacer scroll
+    const faders = document.querySelectorAll('.fade-in');
+    const appearOptions = { threshold: 0.1 };
+
+    const appearOnScroll = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("appear");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, appearOptions);
+
+    faders.forEach(el => {
+      appearOnScroll.observe(el);
+    });
+  </script>
+
+</body>
+</html>
